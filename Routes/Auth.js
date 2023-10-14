@@ -5,8 +5,24 @@ const { body, validationResult } = require("express-validator");
 const Auth = require("./Middleware");
 const jwt = require("jsonwebtoken");
 
-router.get("/",Auth ,(req, res) => {
-  
+router.get("/", Auth, (req, res) => {
+  DB.getConnection((err, conn) => {
+    if (err) {
+      return res.json({ err: err, data: "DB connection error" });
+    }
+    var date = new Date().toISOString();
+    conn.query(
+      `update interns_leaders set last_active_date=? where id = ?`,
+      [date, req.user.id],
+      (err) => {
+        if (err) {
+          res.json({ err: err, data: "DB connection error" });
+          return;
+        }
+      },
+    );
+    conn.release();
+  });
   const user = req.user;
   res.json({ valid: true, data: user });
 });
@@ -26,7 +42,7 @@ router.post(
         return res.json({ err: err, data: "DB connection error" });
       }
       conn.query(
-        `select * from interns_leaders where username = ? and BINARY password = ? `,
+        `select id,fname,image,leading_department,admin from interns_leaders where username = ? and BINARY password = ? `,
         [req.body.username, req.body.password],
         (err, rers) => {
           if (err) {
@@ -42,15 +58,15 @@ router.post(
               { expiresIn: "16h" }, // Change to 3600 during production
               (err, token) => {
                 if (err) throw err;
-                res.status(200).json({ success: true, data: rers[0],token });
-              }
+                res.status(200).json({ success: true, data: rers[0], token });
+              },
             );
           } else {
             return res
               .status(500)
               .json({ success: false, data: "Invalid username and password" });
           }
-        }
+        },
       );
       conn.release();
     });
@@ -68,10 +84,10 @@ router.post(
             res.json({ err: err, data: "DB connection error" });
             return;
           }
-        }
+        },
       );
     });
-  }
+  },
 );
 
 module.exports = router;

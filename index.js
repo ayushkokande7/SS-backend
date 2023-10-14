@@ -17,14 +17,14 @@ app.use(
     credentials: true,
     //  methods: ['GET', 'POST', 'PUT', 'DELETE'],
     // allowedHeaders: ['Content-Type', 'Authorization'],
-  })
+  }),
 );
 
 app.use("/auth", Auth);
-app.use("/leaders", Middleware,Leaders);
-app.use("/interns", Present_interns);
-app.use("/pinterns", Past_interns);
-app.use("/tinterns", Terminated_interns);
+app.use("/leaders", Leaders);
+app.use("/interns", Middleware, Present_interns);
+app.use("/pinterns", Middleware, Past_interns);
+app.use("/tinterns", Middleware, Terminated_interns);
 app.use("/quiz", Quiz);
 
 app.get("/", (req, res) => {
