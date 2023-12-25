@@ -21,7 +21,7 @@ app.use(
   // }
 );
 app.use("/auth", Auth);
-app.use("/leaders", Leaders);
+app.use("/leaders", Middleware, Leaders);
 app.use("/interns", Middleware, Present_interns);
 app.use("/pinterns", Middleware, Past_interns);
 app.use("/tinterns", Middleware, Terminated_interns);
