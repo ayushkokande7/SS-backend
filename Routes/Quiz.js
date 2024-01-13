@@ -2,19 +2,25 @@ const express = require("express");
 const router = express();
 const DB = require("../DB");
 
-router.get("/", (req, res) => {
+router.get("/:subject/:cls", (req, res) => {
+  const { subject, cls } = req.params;
   DB.getConnection((err, conn) => {
     if (err) {
       res.json({ err: err, data: "DB connection error" });
       return;
     }
-    conn.query(`SELECT * FROM interns_quiz `, (err, result) => {
-      if (err) {
-        res.json({ error: err });
-      }
-      res.json({ data: result });
-      conn.release();
-    });
+    conn.query(
+      `SELECT * FROM interns_quiz where subject="${subject}" and class=${cls} order by RAND() limit 10`,
+      (err, result) => {
+        if (err) {
+          res.json({ error: err });
+        }
+        if (result.length < 10)
+          return res.json({ message: "No sufficient Questions" });
+        res.json({ data: result });
+        conn.release();
+      },
+    );
   });
 });
 
