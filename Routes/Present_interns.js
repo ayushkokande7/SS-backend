@@ -1,5 +1,5 @@
 const express = require("express");
-const DB = require("../DB");
+const { mainDB: DB } = require("../DB");
 const router = express();
 const { body, validationResult } = require("express-validator");
 
@@ -21,7 +21,7 @@ router.get("/", (req, res) => {
           res.json({ data: result });
         }
         conn.release();
-      }
+      },
     );
   });
 });
@@ -36,7 +36,7 @@ router.get("/count", (req, res) => {
       if (err) {
         res.json({ error: err });
       }
-      res.json({ data:result[0] });
+      res.json({ data: result[0] });
       conn.release();
     });
   });
@@ -100,10 +100,10 @@ router.post(
           }
           res.json({ msg: "Data inserted Successfully" });
           conn.release();
-        }
+        },
       );
     });
-  }
+  },
 );
 
 router.patch("/:id", (req, res) => {
@@ -123,14 +123,14 @@ router.patch("/:id", (req, res) => {
         }
         res.json({ msg: "Data Edited Successfully", data: data });
         conn.release();
-      }
+      },
     );
   });
 });
 
 router.post("/:id", (req, res) => {
   const { remarks, certificate, lor } = req.body;
-  const args = [req.params.id, certificate, lor,remarks];
+  const args = [req.params.id, certificate, lor, remarks];
   DB.getConnection((err, conn) => {
     if (err) {
       res.json({ err: err, data: "DB connection error" });

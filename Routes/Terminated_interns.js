@@ -1,5 +1,5 @@
 const express = require("express");
-const DB = require("../DB");
+const { mainDB: DB } = require("../DB");
 const router = express();
 const { body, validationResult } = require("express-validator");
 const Auth = require("./Middleware");
@@ -19,19 +19,17 @@ router.post("/", (req, res) => {
     jwt.sign(
       payload,
       process.env.SECRET_KEY,
-      { expiresIn: '16h' }, // Change to 3600 during production
+      { expiresIn: "16h" }, // Change to 3600 during production
       (err, token) => {
         if (err) throw err;
         req.session.token = token;
         res.json(token);
-      }
+      },
     );
   } else {
     res.json("invalid");
   }
 });
-
-
 
 // Access the session as req.session
 router.get("/", function (req, res) {

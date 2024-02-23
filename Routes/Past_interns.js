@@ -1,5 +1,5 @@
 const express = require("express");
-const DB = require("../DB");
+const {mainDB: DB} = require("../DB");
 const router = express();
 const { body, validationResult } = require("express-validator");
 

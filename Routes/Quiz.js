@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express();
-const DB = require("../DB");
+const {mainDB: DB} = require("../DB");
 
 router.get("/:subject/:cls", (req, res) => {
   const { subject, cls } = req.params;
