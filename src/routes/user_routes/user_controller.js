@@ -1,25 +1,60 @@
 const { courseDB: DB } = require("../../../DB");
 
-const change_password = async (req, res) => {
+const get_user = async (req, res) => {
   try {
-    const { cpassword, password, id } = req.body;
     const [rows] = await DB.query(
-      "UPDATE users SET password = ? WHERE id = ? AND password = ?",
-      [password, id, cpassword],
+      "select fname,lname,email,phone,gender,dob from users where user_id=?",
+      [req.user_id],
     );
-    if (!rows.affectedRows)
-      return res
-        .status(400)
-        .json({ message: "Your current password is wrong" });
-    res.status(200).json({ message: "Password changed successfully" });
+    res.Response(200, null, rows[0]);
   } catch (error) {
-    res.status(500).json({ message: "something went wrong" });
+    res.Response(401, "Access Denite", null);
   }
 };
 
-const update_profile = async (req, res) => {};
+const change_password = async (req, res) => {
+  try {
+    const { cpassword, password } = req.body;
+    const [rows] = await DB.query(
+      "UPDATE users SET password = ? WHERE user_id = ? AND password = ?",
+      [cpassword, req.user_id, password],
+    );
+    if (!rows.affectedRows)
+      return res.Response(400, "current password is incorrect", null);
+    res.Response(200, "Password cheanged successfully", null);
+  } catch (error) {
+    res.Response(500, "something went wrong", null);
+  }
+};
+
+const update_profile = async (req, res) => {
+  try {
+    const [rows] = await DB.query("UPDATE users SET ? WHERE user_id = ?", [
+      req.body,
+      req.user_id,
+    ]);
+    if (!rows.affectedRows)
+      return res.Response(400, "something went wrong", null);
+    res.Response(200, "Profile updated successfully", null);
+  } catch (error) {
+    res.Response(500, "something went wrong", null);
+  }
+};
+
+const check_app_version = async (req, res) => {
+  try {
+    const [rows] = await DB.query(
+      `select version from app_version order by id desc limit 1`,
+    );
+    res.Response(200, null, rows[0]);
+  } catch (error) {
+    // res.status(500).json({ message: "something went wrong" });
+  }
+};
 
 module.exports = {
   change_password,
   update_profile,
+  get_user,
+  check_app_version,
 };

@@ -16,11 +16,11 @@ const signin = async (req, res) => {
   try {
     const { email, password } = req.body;
     const [rows] = await DB.query(
-      "SELECT user_id, fname, lname, email, phone,dob,gender,verified FROM users WHERE email = ? AND BINARY password = ?",
+      "SELECT user_id, fname, lname, email,verified FROM users WHERE email = ? AND BINARY password = ?",
       [email, password],
     );
     if (rows.length == 0) {
-      return res.status(401).json({ message: "Invalid Email or password" });
+      return res.Response(400, "Invalid Email or Password", null);
     }
     if (rows[0].verified == 0) {
       const OTP = Math.floor(Math.random() * 9000 + 1000);
@@ -29,9 +29,7 @@ const signin = async (req, res) => {
         email,
       ]);
       if (rows.affectedRows == 0) {
-        return res
-          .status(500)
-          .json({ message: "something went wrong, try again" });
+        return res.Response(500, "Somethig went wrong", null);
       }
       const mailData = {
         from: process.env.EMAIL_USER,
@@ -44,18 +42,17 @@ const signin = async (req, res) => {
       email_config.sendMail(mailData, async (err, info) => {
         if (err) {
           // console.log("error", err);
-          res
-            .status(501)
-            .json({ message: "Somethig went wrong try again later" });
+          return res.Response(501, "Somethig went wrong", null);
         }
-        res.status(201).json({
-          message: "Please verify your Email \nOTP has been send to your Email",
-        });
-        // console.log("success", info);
+        return res.Response(
+          201,
+          "Please verify your Email \nOTP has been send to your Email",
+          null,
+        );
       });
     } else {
       const payload = {
-        user: rows[0].email,
+        user: rows[0].user_id,
       };
       jwt.sign(
         payload,
@@ -63,12 +60,18 @@ const signin = async (req, res) => {
         { expiresIn: "180d" },
         (err, token) => {
           if (err) throw err;
-          res.status(200).json({ data: rows[0], token: token });
+          const user = {
+            fname: rows[0].fname,
+            lname: rows[0].lname,
+            email: rows[0].email,
+          };
+          // res.status(200).json({ data: user, token: token });
+          return res.Response(200, null, { user, token });
         },
       );
     }
   } catch (error) {
-    res.status(500).json({ message: "something went wrong" });
+    res.Response(500, "Something went wrong", null);
   }
 };
 
@@ -86,9 +89,7 @@ const signup = async (req, res) => {
         [fname, lname, email, phone, password, dob, gender, OTP],
       );
       if (rows.affectedRows == 0) {
-        return res
-          .status(500)
-          .json({ message: "something went wrong, try again" });
+        return res.Response(500, "Something went wrong", null);
       }
       const mailData = {
         from: process.env.EMAIL_USER,
@@ -103,18 +104,16 @@ const signup = async (req, res) => {
         if (err) {
           // console.log("error", err);
           await DB.query(`delete table users where id = ?`, [rows.insertId]);
-          return res.status(501).json({
-            message: "Somethig went wrong try again later",
-          });
+          return res.Response(500, "Something went wrong", null);
         }
-        res.status(201).json({ message: "OTP has been send to your Email " });
+        return res.Response(201, "OTP has been send to your email", null);
         // console.log("success", info);
       });
     } else {
-      res.status(400).json({ message: "User already exists" });
+      return res.Response(400, "user already exists", null);
     }
   } catch (error) {
-    res.status(500).json({ message: "something went wrong" });
+    return res.Response(500, "Something went wrong", null);
   }
 };
 
@@ -127,7 +126,7 @@ const forgot_password = async (req, res) => {
     );
 
     if (rows[0].count !== 1) {
-      return res.status(400).json({ message: "Invalid Email" });
+      return res.Response(400, "Invalid Email", null);
     } else {
       const OTP = Math.floor(Math.random() * 9000 + 1000);
       const [rows] = await DB.query(`UPDATE users set otp=? where email=?`, [
@@ -135,9 +134,7 @@ const forgot_password = async (req, res) => {
         email,
       ]);
       if (rows.affectedRows == 0) {
-        return res
-          .status(500)
-          .json({ message: "something went wrong, try again" });
+        return res.Response(500, "Something went wrong", null);
       }
       const mailData = {
         from: process.env.EMAIL_USER,
@@ -150,16 +147,14 @@ const forgot_password = async (req, res) => {
       email_config.sendMail(mailData, async (err, info) => {
         if (err) {
           // console.log("error", err);
-          res
-            .status(501)
-            .json({ message: "Somethig went wrong try again later" });
+          return res.Response(500, "Something went wrong", null);
         }
-        res.status(201).json({ message: "OTP has been send to your Email" });
+        return res.Response(201, "OTP has been send to your email", null);
         // console.log("success", info);
       });
     }
   } catch (error) {
-    res.status(500).json({ message: "something went wrong" });
+    return res.Response(500, "Something went wrong", null);
   }
 };
 
@@ -176,20 +171,16 @@ const verify_otp = async (req, res) => {
           [email],
         );
         if (rows.affectedRows == 0) {
-          return res
-            .status(500)
-            .json({ message: "something went wrong, try again" });
+          return res.Response(500, "Something went wrong", null);
         }
-        return res
-          .status(200)
-          .json({ message: "Email address has been verified!" });
+        return res.Response(200, "Email address has been verified", null);
       } else {
-        return res.status(200).json({ message: "OTP in verified!" });
+        return res.Response(200, "OTP is verified", null);
       }
     }
-    return res.status(400).json({ message: "The OTP you entered is invalid" });
+    return res.Response(400, "Invalid OTP", null);
   } catch (error) {
-    res.status(500).json({ message: "something went wrong" });
+    return res.Response(500, "Something went wrong", null);
   }
 };
 
@@ -201,13 +192,11 @@ const reset_password = async (req, res) => {
       [password, email],
     );
     if (rows.affectedRows == 1) {
-      return res
-        .status(200)
-        .json({ message: "Your password has been changed!" });
+      return res.Response(200, "Your password has been changed!", null);
     }
-    res.status(500).json({ message: "Server error, try again later" });
+    return res.Response(500, "Something went wrong! try again later", null);
   } catch (error) {
-    res.status(500).json({ message: "something went wrong" });
+    return res.Response(500, "Something went wrong", null);
   }
 };
 
