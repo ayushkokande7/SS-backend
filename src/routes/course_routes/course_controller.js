@@ -32,13 +32,12 @@ const completed_courses = async (req, res) => {
   try {
     // const user_id = req.user_id;
     const user_id = 8;
-    const { course_id } = req.body;
     const [rows] = await DB.query(
       `select c.course_id,c.course_name,c.categories,c.image,c.lectures,c.duration,
       p.lecture_completed,e.date,e.certificate from enrollment e
       JOIN course c ON e.course_id=c.course_id
       JOIN progress p ON e.progress_id=p.progress_id 
-      where e.user_id = ? and e.is_completed=1;`,
+      where e.user_id = ? and c.lectures = p.lecture_completed;`,
       [user_id],
     );
     res.Response(200, null, rows);
@@ -49,13 +48,12 @@ const pending_courses = async (req, res) => {
   try {
     // const user_id = req.user_id;
     const user_id = 8;
-    const { course_id } = req.body;
     const [rows] = await DB.query(
       `select c.course_id,c.course_name,c.categories,c.image,c.lectures,c.duration,
       p.lecture_completed,e.date from enrollment e
       JOIN course c ON e.course_id=c.course_id
       JOIN progress p ON e.progress_id=p.progress_id 
-      where e.user_id = ? and e.is_completed=0;`,
+      where e.user_id = ? and c.lectures != p.lecture_completed;`,
       [user_id],
     );
     res.Response(200, null, rows);
@@ -172,7 +170,7 @@ const update_progress = async (req, res) => {
       `select lecture_completed from progress where user_id = ? and course_id=?`,
       [user_id, course_id],
     );
-    if (rows.lecture_completed < progress) {
+    if (rows[0].lecture_completed < progress) {
       const [rows] = await DB.query(
         `UPDATE progress set lecture_completed = ? where user_id = ? and course_id=?`,
         [progress, user_id, course_id],
@@ -180,9 +178,10 @@ const update_progress = async (req, res) => {
       if (rows.affectedRows == 1) {
         return res.Response(200, "Next Lecture Opened", null);
       } else {
-        res.Response(500, "Faild to update progress", null);
+        return res.Response(500, "Faild to update progress", null);
       }
     }
+    res.Response(200, null, null);
   } catch (error) {
     console.log(error);
   }

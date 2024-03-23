@@ -9,8 +9,8 @@ router.get("/curriculum/:id", course_controller.course_curriculum);
 router.get("/reviews/:id", course_controller.course_reviews);
 router.post("/review", course_controller.add_review);
 router.post("/progress", course_controller.update_progress);
-router.get("/completed_courses", course_controller.completed_courses);
-router.get("/pending_courses", course_controller.pending_courses);
+router.get("/completed", course_controller.completed_courses);
+router.get("/pending", course_controller.pending_courses);
 router.get("/favourite", course_controller.get_favourite);
 router.post("/favourite", course_controller.add_favourite);
 
