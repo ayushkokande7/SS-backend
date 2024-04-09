@@ -1,6 +1,8 @@
 const express = require("express");
 const port = 3000;
 const app = express();
+const http = require("http").createServer(app);
+const io = require("socket.io")(http);
 const bodyParser = require("body-parser");
 const Present_interns = require("./Routes/Present_interns");
 const Auth = require("./Routes/Auth");
@@ -11,6 +13,7 @@ const Quiz = require("./Routes/Quiz");
 const App = require("./src/routes");
 const cors = require("cors");
 const Middleware = require("./Routes/Middleware");
+const socket = require("./src/routes/socket_routes/socket");
 app.use(bodyParser.json());
 app.use(
   cors(),
@@ -21,6 +24,10 @@ app.use(
   //   // allowedHeaders: ['Content-Type', 'Authorization'],
   // }
 );
+app.get("/", (req, res) => {
+  res.json("API working");
+});
+
 app.use("/auth", Auth);
 app.use("/leaders", Middleware, Leaders);
 app.use("/interns", Middleware, Present_interns);
@@ -28,11 +35,8 @@ app.use("/pinterns", Middleware, Past_interns);
 app.use("/tinterns", Middleware, Terminated_interns);
 app.use("/quiz", Quiz);
 app.use("/api", App);
+socket(io);
 
-app.get("/", (req, res) => {
-  res.json("API working");
-});
-
-app.listen(port, () => {
+http.listen(port, () => {
   console.log(`server is running on port ${port}`);
 });

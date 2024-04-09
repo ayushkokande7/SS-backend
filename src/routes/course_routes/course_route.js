@@ -13,5 +13,7 @@ router.get("/completed", course_controller.completed_courses);
 router.get("/pending", course_controller.pending_courses);
 router.get("/favourite", course_controller.get_favourite);
 router.post("/favourite", course_controller.add_favourite);
+router.post("/remove_favourite", course_controller.remove_favourite);
+router.get("/live_class", course_controller.live_class);
 
 module.exports = router;

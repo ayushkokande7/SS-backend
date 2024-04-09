@@ -1,6 +1,8 @@
 const customResponseMiddleware = (req, res, next) => {
   res.Response = (statusCode, message = null, data = null) => {
-    const responseObject = {};
+    const responseObject = {
+      status: statusCode,
+    };
     if (message !== null) {
       responseObject.message = message;
     }

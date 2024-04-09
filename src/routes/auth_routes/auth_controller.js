@@ -57,7 +57,7 @@ const signin = async (req, res) => {
       jwt.sign(
         payload,
         process.env.SECRET_KEY,
-        { expiresIn: "180d" },
+        { expiresIn: "30d" },
         (err, token) => {
           if (err) throw err;
           const user = {
