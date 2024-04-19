@@ -1,34 +1,21 @@
 const { courseDB: DB } = require("../../../DB");
 
-const popular_courses = async (req, res) => {
+const trends_course = async (req, res) => {
   try {
+    const { trend } = req.params;
     const user_id = req.user_id;
     const [rows] = await DB.query(
-      `SELECT c.course_id, c.course_name, c.categories,c.ratings,c.image,
-      c.duration,f.favourite_id,c.price,c.fake_price,c.students_enrolled
+      `SELECT c.course_id, c.course_name, c.categories,c.ratings,c.image,c.instructor_name,
+      c.course_description,c.duration,f.favourite_id,c.price,c.fake_price,c.students_enrolled,p.payment_id
       FROM course c
       LEFT JOIN favourites f ON 
-      f.user_id = ? AND c.course_id = f.course_id WHERE 
-      c.popularity_trend = 'popular' AND 
+      f.user_id = ? AND c.course_id = f.course_id 
+      LEFT JOIN payment p on p.user_id = ?
+      AND p.course_id = c.course_id 
+      WHERE 
+      c.popularity_trend = ? AND 
       c.is_visible = 1 LIMIT 5;`,
-      [user_id],
-    );
-    res.Response(200, null, rows);
-  } catch (error) {}
-};
-
-const trending_courses = async (req, res) => {
-  try {
-    const user_id = req.user_id;
-    const [rows] = await DB.query(
-      `SELECT c.course_id, c.course_name, c.categories,c.ratings,c.image,
-      c.duration,f.favourite_id,c.price,c.fake_price,c.students_enrolled
-      FROM course c
-      LEFT JOIN favourites f ON 
-      f.user_id = ? AND c.course_id = f.course_id WHERE 
-      c.popularity_trend = 'trending' AND 
-      c.is_visible = 1 LIMIT 5;`,
-      [user_id],
+      [user_id, user_id, trend],
     );
     res.Response(200, null, rows);
   } catch (error) {}
@@ -54,7 +41,8 @@ const find_course = async (req, res) => {
     const { name } = req.params;
     const [rows] = await DB.query(
       `SELECT c.course_id, c.course_name, c.categories,c.ratings,c.image,
-      c.duration,f.favourite_id,c.price,c.fake_price,c.students_enrolled
+      c.duration,f.favourite_id,c.price,c.fake_price,c.students_enrolled,c.instructor_name,
+      c.course_description
       FROM course c LEFT JOIN favourites f ON f.user_id = ? AND
       c.course_id = f.course_id where c.course_name like '%${name}%' and c.is_visible=1;`,
       [user_id],
@@ -165,7 +153,8 @@ const get_favourite = async (req, res) => {
     const user_id = req.user_id;
     const [rows] = await DB.query(
       `SELECT c.course_id, c.course_name, c.categories,c.ratings,
-       c.duration,c.image,f.favourite_id
+       c.duration,c.image,f.favourite_id,c.price,c.fake_price,c.students_enrolled,c.instructor_name,
+       c.course_description
       from course c,favourites f where c.course_id = f.course_id and user_id = ? and is_visible = 1`,
       [user_id],
     );
@@ -232,14 +221,20 @@ const update_progress = async (req, res) => {
       }
     }
     res.Response(200, null, null);
-  } catch (error) {
-    console.log(error);
-  }
+  } catch (error) {}
+};
+
+const banner = async (req, res) => {
+  try {
+    const [rows] = await DB.query(
+      `select url,image from ads order by ads_id desc limit 1`,
+    );
+    res.Response(200, null, rows[0]);
+  } catch (error) {}
 };
 
 module.exports = {
-  popular_courses,
-  trending_courses,
+  trends_course,
   find_course,
   course_curriculum,
   course_reviews,
@@ -251,4 +246,5 @@ module.exports = {
   add_favourite,
   remove_favourite,
   live_class,
+  banner,
 };

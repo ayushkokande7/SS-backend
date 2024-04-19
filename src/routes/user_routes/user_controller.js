@@ -47,9 +47,19 @@ const check_app_version = async (req, res) => {
       `select version from app_version order by id desc limit 1`,
     );
     res.Response(200, null, rows[0]);
-  } catch (error) {
-    // res.status(500).json({ message: "something went wrong" });
-  }
+  } catch (error) {}
+};
+
+const report_BUG = async (req, res) => {
+  try {
+    const [rows] = await DB.query(
+      `insert into report_app_issue (user_id,description) values (?,?)`,
+      [req.user_id, req.body.desc],
+    );
+    if (rows.affectedRows == 1)
+      return res.Response(200, "Your message has been send!", null);
+    return res.Response(500, "Something went worong", null);
+  } catch (error) {}
 };
 
 module.exports = {
@@ -57,4 +67,5 @@ module.exports = {
   update_profile,
   get_user,
   check_app_version,
+  report_BUG,
 };

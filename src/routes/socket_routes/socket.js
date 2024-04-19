@@ -23,9 +23,7 @@ module.exports = (io) => {
       // Socket Join RoomName
       socket.join(roomId);
       socketList[socket.id] = { userName, video: true, audio: true, roomId };
-      // socket.broadcast.to(roomId).emit("FE-user-join-msg", userName);
       console.log(socketList);
-      // Set User List
       io.sockets.in(roomId).clients((err, clients) => {
         try {
           const users = [];
@@ -33,7 +31,6 @@ module.exports = (io) => {
             users.push({ userId: client, info: socketList[client] });
           });
           socket.broadcast.to(roomId).emit("FE-user-join", users, userName);
-          io.to(socket.id).emit("FE-get-all-users", users);
         } catch (e) {
           io.sockets.in(roomId).emit("FE-error-user-exist", { err: true });
         }

@@ -106,11 +106,10 @@ const signup = async (req, res) => {
           await DB.query(`delete table users where id = ?`, [rows.insertId]);
           return res.Response(500, "Something went wrong", null);
         }
-        return res.Response(201, "OTP has been send to your email", null);
-        // console.log("success", info);
+        return res.Response(200, "Verify your Email address", null);
       });
     } else {
-      return res.Response(400, "user already exists", null);
+      return res.Response(400, "Email is already registered", null);
     }
   } catch (error) {
     return res.Response(500, "Something went wrong", null);
@@ -149,7 +148,7 @@ const forgot_password = async (req, res) => {
           // console.log("error", err);
           return res.Response(500, "Something went wrong", null);
         }
-        return res.Response(201, "OTP has been send to your email", null);
+        return res.Response(200, "OTP has been send to your email", null);
         // console.log("success", info);
       });
     }
