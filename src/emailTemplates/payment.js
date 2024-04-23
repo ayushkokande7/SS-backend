@@ -1,9 +1,9 @@
-const verifyEmail = (email, OTP) => {
+const payment = (email, cname, instname, amount, transaction_id, date) => {
   const mail = {
     from: process.env.EMAIL_USER,
     to: email,
     subject: "studifysuccess",
-    text: "Enter this OTP to verify your account",
+    text: "Payment Successful",
     html: `<!doctype html>
     <html ⚡4email data-css-strict>
     
@@ -174,7 +174,7 @@ const verifyEmail = (email, OTP) => {
                                                         <td style="overflow-wrap:break-word;word-break:break-word;padding:0px 10px 31px;font-family:Ubuntu;" align="left">
     
                                                             <div style="font-size: 14px; color: #e5eaf5; line-height: 140%; text-align: center; word-wrap: break-word;">
-                                                                <p style="font-size: 14px; line-height: 140%;"><span style="font-size: 28px; line-height: 39.2px;"><strong><span style="line-height: 39.2px; font-size: 28px;">OTP RECEIVED</span></strong>
+                                                                <p style="font-size: 14px; line-height: 140%;"><span style="font-size: 28px; line-height: 39.2px;"><strong><span style="line-height: 39.2px; font-size: 28px;">Payment Successfull</span></strong>
                                                                     </span>
                                                                 </p>
                                                             </div>
@@ -204,11 +204,16 @@ const verifyEmail = (email, OTP) => {
                                                         <td style="overflow-wrap:break-word;word-break:break-word;padding:33px 55px;font-family:Ubuntu;" align="left">
     
                                                             <div style="font-size: 14px; line-height: 160%; text-align: center; word-wrap: break-word;">
-                                                                <p style="line-height: 160%;"><span style="font-size: 18px; line-height: 28.8px;">Verify your email address</span></p>
+                                                                <p style="line-height: 160%;"><span style="font-size: 18px; line-height: 28.8px;">Payment ID: ${transaction_id}</span></p>
                                                                 <p style="line-height: 160%;">&nbsp;</p>
-                                                                <p style="line-height: 160%;"><span style="font-size: 35px; color:#008b8b; line-height: 48px;">${OTP}</span></p>
-                                                                <p style="line-height: 160%;">&nbsp;</p>
-                                                                <p style="line-height: 160%;"><span style="font-size: 18px; line-height: 28.8px;">VALID FOR 1 MIN</span></p>
+                                                <p style="line-height: 160%;"><span style="font-size: 18px; line-height: 28.8px;">Amount: Rs ${amount}</span></p>  
+                                                                          <p style="line-height: 160%;">&nbsp;</p>
+                                                <p style="line-height: 160%;"><span style="font-size: 18px; line-height: 28.8px;">Course Name: ${cname}</span></p>      
+                                                                          <p style="line-height: 160%;">&nbsp;</p>
+                                                <p style="line-height: 160%;"><span style="font-size: 18px; line-height: 28.8px;">Instructor Name: ${instname}</span></p>      
+                                                                          <p style="line-height: 160%;">&nbsp;</p>
+                                                <p style="line-height: 160%;"><span style="font-size: 18px; line-height: 28.8px;">Date: ${date}</span></p>      
+                                                        
                                                             </div>
     
                                                         </td>
@@ -333,9 +338,9 @@ const verifyEmail = (email, OTP) => {
         </table>
     </body>
     </html>
-    `,
+      `,
   };
-
   return mail;
 };
-module.exports = verifyEmail;
+
+module.exports = payment;
