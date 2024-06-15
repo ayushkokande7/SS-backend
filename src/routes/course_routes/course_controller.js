@@ -15,7 +15,7 @@ const trends_course = async (req, res) => {
       WHERE 
       c.popularity_trend = ? AND 
       c.is_visible = 1 LIMIT 5;`,
-      [user_id, user_id, trend],
+      [user_id, user_id, trend]
     );
     res.Response(200, null, rows);
   } catch (error) {}
@@ -27,7 +27,7 @@ const live_class = async (req, res) => {
     const [rows] = await DB.query(
       `select * from live_class_enrollment l JOIN 
       live_class c ON l.live_class_id = c.id where user_id = ? and c.is_visible = 1;`,
-      [user_id],
+      [user_id]
     );
     res.Response(200, null, rows);
   } catch (error) {
@@ -45,7 +45,7 @@ const find_course = async (req, res) => {
       c.course_description
       FROM course c LEFT JOIN favourites f ON f.user_id = ? AND
       c.course_id = f.course_id where c.course_name like '%${name}%' and c.is_visible=1;`,
-      [user_id],
+      [user_id]
     );
     res.Response(200, null, rows);
   } catch (error) {}
@@ -59,7 +59,7 @@ const completed_courses = async (req, res) => {
       p.lecture_completed,p.certificate from course c
       JOIN progress p ON c.course_id=p.course_id 
       where p.user_id = ? and c.lectures = p.lecture_completed;`,
-      [user_id],
+      [user_id]
     );
     res.Response(200, null, rows);
   } catch (error) {
@@ -75,7 +75,7 @@ const pending_courses = async (req, res) => {
       p.lecture_completed from course c 
       JOIN progress p ON c.course_id=p.course_id 
       where p.user_id = ? and c.lectures != p.lecture_completed;`,
-      [user_id],
+      [user_id]
     );
     res.Response(200, null, rows);
   } catch (error) {
@@ -109,7 +109,7 @@ const course_curriculum = async (req, res) => {
       c.course_id = ?
   GROUP BY
       s.section_id;`,
-      [id],
+      [id]
     );
     res.Response(200, null, rows);
   } catch (error) {
@@ -122,7 +122,7 @@ const course_reviews = async (req, res) => {
     const { id } = req.params;
     const [rows] = await DB.query(
       `SELECT s.fname ,r.review ,r.ratings FROM course c JOIN reviews r ON c.course_id = r.course_id Join users s ON r.user_id = s.user_id where r.course_id = ?;`,
-      [id],
+      [id]
     );
     res.Response(200, null, rows);
   } catch (error) {
@@ -136,7 +136,7 @@ const add_review = async (req, res) => {
     const { course_id, rating, message } = req.body;
     const [rows] = await DB.query(
       `insert into reviews (course_id,user_id,review,ratings) values(?,?,?,?)`,
-      [course_id, user_id, message, rating],
+      [course_id, user_id, message, rating]
     );
     if (rows.affectedRows == 1) {
       res.Response(200, "Review added successfully", null);
@@ -156,7 +156,7 @@ const get_favourite = async (req, res) => {
        c.duration,c.image,f.favourite_id,c.price,c.fake_price,c.students_enrolled,c.instructor_name,
        c.course_description
       from course c,favourites f where c.course_id = f.course_id and user_id = ? and is_visible = 1`,
-      [user_id],
+      [user_id]
     );
     res.Response(200, null, rows);
   } catch (error) {
@@ -170,15 +170,15 @@ const add_favourite = async (req, res) => {
     const { course_id } = req.body;
     const [rows] = await DB.query(
       `insert into favourites (course_id,user_id) values(?,?)`,
-      [course_id, user_id],
+      [course_id, user_id]
     );
     if (rows.affectedRows == 1) {
-      res.Response(200, "Added to favourite", null);
+      res.Response(200, null, null);
     } else {
-      res.Response(500, "Cannot added to favourite", null);
+      res.Response(500, null, null);
     }
   } catch (error) {
-    res.Response(500, "Somethig went wrong", null);
+    res.Response(500);
   }
 };
 
@@ -188,12 +188,12 @@ const remove_favourite = async (req, res) => {
     const { course_id } = req.body;
     const [rows] = await DB.query(
       `delete from favourites where user_id = ? and course_id = ?`,
-      [user_id, course_id],
+      [user_id, course_id]
     );
     if (rows.affectedRows == 1) {
-      res.Response(200, "removed from favourite", null);
+      res.Response(200);
     } else {
-      res.Response(500, "Cannot removed from favourite", null);
+      res.Response(500);
     }
   } catch (error) {
     res.Response(500, "Somethig went wrong", null);
@@ -206,16 +206,16 @@ const update_progress = async (req, res) => {
     const { course_id, progress } = req.body;
     const [rows] = await DB.query(
       `select lecture_completed,progress_id from progress where user_id = ? and course_id=?`,
-      [user_id, course_id],
+      [user_id, course_id]
     );
     const pid = rows[0].progress_id;
     if (rows[0].lecture_completed < progress) {
       const [rows] = await DB.query(
         `UPDATE progress set lecture_completed = ? where progress_id = ?`,
-        [progress, pid],
+        [progress, pid]
       );
       if (rows.affectedRows == 1) {
-        return res.Response(200, "Next Lecture Opened", null);
+        return res.Response(200);
       } else {
         return res.Response(500, "Faild to update progress", null);
       }
@@ -226,10 +226,22 @@ const update_progress = async (req, res) => {
 
 const banner = async (req, res) => {
   try {
+    const user_id = req.user_id;
     const [rows] = await DB.query(
-      `select url,image from ads order by ads_id desc limit 1`,
+      `select is_intern from users where user_id = ?`,
+      [user_id]
     );
-    res.Response(200, null, rows[0]);
+    if (rows[0].is_intern == 0) {
+      const [rows] = await DB.query(
+        `select url,image from ads where is_visible = 1 order by ads_id desc limit 1`
+      );
+      return res.Response(200, null, rows[0]);
+    } else {
+      const [rows] = await DB.query(
+        `select url,image from ads where ads_id = 1`
+      );
+      return res.Response(200, null, rows[0]);
+    }
   } catch (error) {}
 };
 

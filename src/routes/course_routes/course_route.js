@@ -14,5 +14,6 @@ router.get("/favourite", course_controller.get_favourite);
 router.post("/favourite", course_controller.add_favourite);
 router.post("/remove_favourite", course_controller.remove_favourite);
 router.get("/live_class", course_controller.live_class);
-router.get("/banner", course_controller.banner);
+router.get("/banner/:id", course_controller.banner);
+
 module.exports = router;

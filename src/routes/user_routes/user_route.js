@@ -7,4 +7,5 @@ router.post("/changepassword", user_controller.change_password);
 router.put("/update", user_controller.update_profile);
 router.get("/version", user_controller.check_app_version);
 router.post("/report_bug", user_controller.report_BUG);
+
 module.exports = router;

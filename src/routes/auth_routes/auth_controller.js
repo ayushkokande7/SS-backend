@@ -3,6 +3,8 @@ const emailConfig = require("../../utils/emailConfig");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const { verifyEmail, resetPassword, welcome } = require("../../emailTemplates");
+const generateOTP = require("../../utils/generateOTP");
+
 const signin = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -16,7 +18,7 @@ const signin = async (req, res) => {
     const isMatch = await bcrypt.compare(password, rows[0].password);
     if (!isMatch) return res.Response(400, "Invalid Email or Password", null);
     if (rows[0].verified == 0) {
-      const OTP = Math.floor(Math.random() * 9000 + 1000);
+      const OTP = generateOTP();
       const [rows] = await DB.query(`UPDATE users set otp=? where email=?`, [
         OTP,
         email,
@@ -64,11 +66,11 @@ const signup = async (req, res) => {
   try {
     const { fname, lname, email, phone, password, dob, gender } = req.body;
     const [rows] = await DB.query(
-      "select count(*) as count from users where email = ?",
-      [email]
+      "select count(*) as count from users where email = ? or phone = ?",
+      [email, phone]
     );
     if (rows[0].count == 0) {
-      const OTP = Math.floor(Math.random() * 9000 + 1000);
+      const OTP = generateOTP();
       const hashedPassword = await bcrypt.hash(password, 10);
       const [rows] = await DB.query(
         `INSERT INTO users (fname, lname, email, phone, password,dob,gender,otp) VALUES (?, ?, ?, ?, ?,?,?,?)`,
@@ -80,21 +82,27 @@ const signup = async (req, res) => {
 
       emailConfig.sendMail(verifyEmail(email, OTP), async (err, info) => {
         if (err) {
-          // console.log("error", err);
-          await DB.query(`delete table users where id = ?`, [rows.insertId]);
-          return res.Response(500, "Something went wrong", null);
+          return res.Response(
+            500,
+            "Something went wrong! try again later",
+            null
+          );
         }
         return res.Response(200, "Verify your Email address", null);
       });
     } else {
-      return res.Response(400, "Email is already registered", null);
+      return res.Response(
+        400,
+        "Email or Phone number is already registered",
+        null
+      );
     }
   } catch (error) {
     return res.Response(500, "Something went wrong", null);
   }
 };
 
-const forgot_password = async (req, res) => {
+const send_otp = async (req, res) => {
   try {
     const { email } = req.body;
     const [rows] = await DB.query(
@@ -103,9 +111,9 @@ const forgot_password = async (req, res) => {
     );
 
     if (rows[0].count !== 1) {
-      return res.Response(400, "Invalid Email", null);
+      return res.Response(400, "This Email is not registered", null);
     } else {
-      const OTP = Math.floor(Math.random() * 9000 + 1000);
+      const OTP = generateOTP();
       const [rows] = await DB.query(`UPDATE users set otp=? where email=?`, [
         OTP,
         email,
@@ -113,7 +121,6 @@ const forgot_password = async (req, res) => {
       if (rows.affectedRows == 0) {
         return res.Response(500, "Something went wrong", null);
       }
-
       emailConfig.sendMail(resetPassword(email, OTP), async (err, info) => {
         if (err) {
           // console.log("error", err);
@@ -157,11 +164,11 @@ const verify_otp = async (req, res) => {
 
 const reset_password = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, otp } = req.body;
     const hashedPassword = await bcrypt.hash(password, 10);
     const [rows] = await DB.query(
-      "update users set password=? where email = ?",
-      [hashedPassword, email]
+      "update users set password=? where email = ? and otp = ?",
+      [hashedPassword, email, otp]
     );
     if (rows.affectedRows == 1) {
       return res.Response(200, "Your password has been changed!", null);
@@ -175,7 +182,7 @@ const reset_password = async (req, res) => {
 module.exports = {
   signin,
   signup,
-  forgot_password,
+  send_otp,
   reset_password,
   verify_otp,
 };
