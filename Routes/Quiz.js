@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express();
-const {mainDB: DB} = require("../DB");
+const { mainDB: DB } = require("../DB");
 
 router.get("/:subject/:cls", (req, res) => {
   const { subject, cls } = req.params;
@@ -19,7 +19,7 @@ router.get("/:subject/:cls", (req, res) => {
           return res.json({ message: "No sufficient Questions" });
         res.json({ data: result });
         conn.release();
-      },
+      }
     );
   });
 });
@@ -62,7 +62,7 @@ router.post("/", (req, res) => {
         }
         res.json({ msg: "Data inserted Successfully" });
         conn.release();
-      },
+      }
     );
   });
 });
@@ -84,7 +84,7 @@ router.patch("/:id", (req, res) => {
         }
         res.json({ msg: "Data Edited Successfully" });
         conn.release();
-      },
+      }
     );
   });
 });

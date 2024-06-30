@@ -173,7 +173,7 @@ const reset_password = async (req, res) => {
     if (rows.affectedRows == 1) {
       return res.Response(200, "Your password has been changed!", null);
     }
-    return res.Response(500, "Something went wrong! try again later", null);
+    return res.Response(400, "Something went wrong! try again later", null);
   } catch (error) {
     return res.Response(500, "Something went wrong", null);
   }
